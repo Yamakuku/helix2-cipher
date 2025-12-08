@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2025 Yamakuku
+Copyright (c) 2025 Jarl "Yamakuku" Lindeneg
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +19,25 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+SECURITY DISCLAIMER:
+
+This software implements an experimental cryptographic cipher that has NOT
+undergone formal security analysis or peer review. It is provided for
+EDUCATIONAL AND RESEARCH PURPOSES ONLY.
+
+DO NOT USE THIS SOFTWARE FOR:
+- Protecting sensitive data
+- Production systems
+- Financial transactions
+- Personal information
+- Any application requiring actual security
+
+For production use, employ well-established, standardized cryptographic
+algorithms such as ChaCha20, AES-GCM, or other NIST/IETF approved ciphers.
+
+The author makes no claims about the security properties of this cipher and
+accepts no liability for any security breaches, data loss, or other damages
+resulting from its use.
