@@ -1,10 +1,16 @@
 # Helix-2 Stream Cipher
 
-An educational ARX (Add-Rotate-XOR) stream cipher inspired by ChaCha20, designed for learning and experimentation with cryptographic primitives.
+So one day I thought
+
+`I wonder how you build cryptographic ciphers`
+
+And sometimes later Helix-2 was born. An educational ARX (Add-Rotate-XOR) stream cipher inspired by ChaCha20, designed for learning and experimentation with cryptographic primitives.
+
+Though the process was as much on how to test your cipher, going back and forth, untill you have a result, that would justify all the time spend on this.
 
 ## ⚠️ Security Warning
 
-**This cipher is experimental and has NOT undergone formal cryptanalysis. It should NOT be used for production security applications.** For real-world use, please use ChaCha20, AES-GCM, or other standardized ciphers that have been thoroughly reviewed by the cryptographic community.
+**This cipher is experimental and has NOT undergone formal cryptanalysis. It should NOT be used for production security applications.** 
 
 ## Overview
 
@@ -37,27 +43,12 @@ Performance comparison on the same hardware:
 
 *Note: Benchmarks performed on a single core. Performance may vary by platform.*
 
-### Detailed Helix-2 Performance
-
-```
-Buffer Size    Throughput
---------------------------
-64 B          645.16 MB/s
-256 B         684.93 MB/s
-1 KB          662.25 MB/s
-4 KB          657.89 MB/s
-16 KB         649.35 MB/s
-64 KB         657.89 MB/s
-1 MB          649.35 MB/s
-```
-
 ## Building
 
 ### Prerequisites
 
 - **Windows**: MinGW-w64 with GCC
 - **Linux**: GCC or Clang
-- **macOS**: Clang (via Xcode Command Line Tools)
 
 ### Quick Start
 
@@ -76,7 +67,7 @@ This builds:
 make release
 ```
 
-This builds optimized versions plus `helix2_performance.exe` for benchmarking.
+This builds optimized versions plus `helix2_performance.exe` for benchmarking, but excluding the Test suite.
 
 #### Clean Build
 ```bash
@@ -173,8 +164,8 @@ The cipher uses a 16-word (64-byte) state:
 
 Each round performs:
 1. Column mixing (4 shuffle operations)
-2. Diagonal mixing (4 shuffle operations)
-3. Alternate diagonal mixing (4 shuffle operations)
+2. Row mixing (4 shuffle operations)
+3. Diagonal mixing (4 shuffle operations)
 4. State addition
 
 The shuffle operation combines compound and simple ARX operations with varying rotation constants.
@@ -208,8 +199,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Q: Why create a new cipher?**
 A: Purely educational. Understanding how ciphers work by building one is a valuable learning experience.
 
-**Q: Is this better than ChaCha20?**
-A: No. ChaCha20 is a proven, standardized cipher. This is an experiment.
-
 **Q: Can I use this in my project?**
-A: Technically yes (MIT license), but please don't use it for anything requiring real security.
+A: Yes (MIT license), but please don't use it for anything requiring proven security.

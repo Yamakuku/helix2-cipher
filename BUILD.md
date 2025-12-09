@@ -7,7 +7,6 @@ This document provides detailed instructions for building the Helix-2 stream cip
 - [Prerequisites](#prerequisites)
 - [Windows with MinGW](#windows-with-mingw)
 - [Linux](#linux)
-- [macOS](#macos)
 - [Build Targets](#build-targets)
 - [Troubleshooting](#troubleshooting)
 
@@ -33,23 +32,35 @@ This document provides detailed instructions for building the Helix-2 stream cip
 
 ## Windows with MinGW (MSYS2)
 
-# Build the project:
-   make          # Debug build
-   make release  # Release build
+### Debug build
+``` bash
+   make
+```
 
-# Run tests
+### Release build with optimizations
+``` bash
+   make release
+```
+
+### Run tests
 build\debug\helix2_test
 
 ## Linux
 
-# Debug build
-make
+### Debug build
+``` bash
+   make
+```
 
-# Release build with optimizations
-make release
+### Release build with optimizations
+``` bash
+   make release
+```
 
-# Run tests
-./build/debug/helix2_test
+### Run tests
+``` bash
+   ./build/debug/helix2_test
+```
 
 ## Build Targets
 
@@ -87,38 +98,24 @@ Release flags: `-O3 -march=native -ffast-math -funroll-loops -DNDEBUG -Wall`
 
 ## Using the Static Library
 
-### Linking Against libhelix2.a
-
-# Compile your program
+### Compile your program
 gcc -c myprogram.c -I/path/to/helix2-cipher/src
 
-# Link with the library
-gcc myprogram.o -L/path/to/helix2-cipher/build/release -lhelix2 -o myprogram
+### Link with the library
+gcc myprogram.o -L/path/to/helix2-cipher/build/release -llibhelix2.a -o myprogram
 
-### CMake Integration (Example)
+## Test the CLI Tool
 
-# Add Helix-2 library
-add_library(helix2 STATIC IMPORTED)
-set_target_properties(helix2 PROPERTIES
-    IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/libhelix2.a"
-    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/include"
-)
-
-# Link against it
-target_link_libraries(myproject PRIVATE helix2)
-
-### Test the CLI Tool
-
-# Create test file
+### Create test file
 echo "Hello, Helix-2!" > test.txt
 
-# Encrypt
+### Encrypt
 ./build/release/helix2_cl -e -p "test123" -n 00000000000000000000000000000000000000000000 test.txt -o test.enc
 
-# Decrypt
+### Decrypt
 ./build/release/helix2_cl -d -p "test123" -n 00000000000000000000000000000000000000000000 test.enc -o test.dec
 
-# Verify
+### Verify
 diff test.txt test.dec
 
 
@@ -140,5 +137,4 @@ If you encounter build issues:
 ## See Also
 
 - [README.md](README.md) - Project overview
-- [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution guidelines
 - [LICENSE](LICENSE) - License information

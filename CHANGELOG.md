@@ -32,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Documented that this is an experimental cipher for educational use only
 - Not recommended for production use
 
-## [2.0.0] - 2025-12-XX
+## [2.0.0] - 2025-12-01
 
 ### Added
 - Initial implementation of Helix-2 stream cipher
@@ -56,9 +56,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Links
 
-- [Repository](https://github.com/YOUR_USERNAME/helix2-cipher)
-- [Issue Tracker](https://github.com/YOUR_USERNAME/helix2-cipher/issues)
-- [Releases](https://github.com/YOUR_USERNAME/helix2-cipher/releases)
+- [Repository](https://github.com/Yamakuku/helix2-cipher)
+- [Issue Tracker](https://github.com/Yamakuku/helix2-cipher/issues)
+- [Releases](https://github.com/Yamakuku/helix2-cipher/releases)
 
 ## Notes
 
