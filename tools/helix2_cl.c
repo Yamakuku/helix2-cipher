@@ -44,6 +44,12 @@
  * SOFTWARE.
  */
 
+/* Enable large file support on Linux/POSIX systems */
+#ifndef _WIN32
+    #define _POSIX_C_SOURCE 200112L
+    #define _FILE_OFFSET_BITS 64
+#endif
+
 #include "../src/helix2.h"
 
 #include <stdio.h>
@@ -66,8 +72,6 @@ void print_progress(uint64_t current, uint64_t total) {
     
     unsigned int percent = (unsigned int)(((double)current / (double)total) * 100.0);
     unsigned int filled = (unsigned int)(((double)current / (double)total) * (double)PROGRESS_WIDTH);
-    
-    //printf("%llu %llu %u %u\n",current, total, percent, filled);
 
     /* Only print if the bar changed */
     if (percent != last_percent) {
@@ -266,7 +270,7 @@ int main(int argc, char *argv[]) {
         print_progress(file_offset, file_size);
     }
 
-    printf("\n\nDone, processed %llu bytes\n", file_offset);
+    printf("\n\nDone, processed %lu bytes\n", file_offset);
     
     fclose(fin);
     fclose(fout);
