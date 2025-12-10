@@ -4,9 +4,11 @@ So one day I thought
 
 `I wonder how you build cryptographic ciphers`
 
-And sometimes later Helix-2 was born. An educational ARX (Add-Rotate-XOR) stream cipher inspired by ChaCha20, designed for learning and experimentation with cryptographic primitives.
+Discovering the stream cipher design, where it is possible to process down to a single byte, anywhere in the buffer, was an eye opener.
 
-Though the process was as much on how to test your cipher, going back and forth, untill you have a result, that would justify all the time spend on this.
+And sometimes later Helix-2 was born. An educational ARX (Add-Rotate-XOR) stream cipher (like ChaCha20), but with some fundemental differences, designed for learning and experimentation with cryptographic primitives.
+
+Though the process was as much more on how to test your cipher, going back and forth, untill you have a result, that would justify all the time you spend on this project.
 
 ## ⚠️ Security Warning
 
