@@ -270,7 +270,7 @@ void test_64bit_counter(void) {
     
     // Test 2: Block at 274 GB boundary (2^32 - 1)
     uint64_t block_274gb = 0xFFFFFFFFULL;  // 4,294,967,295 blocks
-    printf("\nBlock %llu (0x00000000FFFFFFFF) - 274 GB boundary:\n", block_274gb);
+    printf("\nBlock %lu (0x00000000FFFFFFFF) - 274 GB boundary:\n", block_274gb);
     helix2_buffer_set_next_block(&ctx, block_274gb);
     printf("  state[10] = 0x%08X (should be 0xFFFFFFFF)\n", ctx.keystream.state[10]);
     printf("  state[11] = 0x%08X (should be nonce[0] XOR 0 = nonce[0])\n", ctx.keystream.state[11]);
@@ -279,7 +279,7 @@ void test_64bit_counter(void) {
     
     // Test 3: Block just after 274 GB (2^32)
     uint64_t block_after_274gb = 0x100000000ULL;  // 4,294,967,296 blocks
-    printf("\nBlock %llu (0x0000000100000000) - Just after 274 GB:\n", block_after_274gb);
+    printf("\nBlock %lu (0x0000000100000000) - Just after 274 GB:\n", block_after_274gb);
     helix2_buffer_set_next_block(&ctx, block_after_274gb);
     printf("  state[10] = 0x%08X (should be 0x00000000)\n", ctx.keystream.state[10]);
     printf("  state[11] = 0x%08X (should be nonce[0] XOR 1)\n", ctx.keystream.state[11]);
@@ -288,7 +288,7 @@ void test_64bit_counter(void) {
     
     // Test 4: Very large block (1 TB = ~17.6 billion blocks)
     uint64_t block_1tb = 17592186044416ULL / 64;  // 1 TB in blocks
-    printf("\nBlock %llu (0x0000040000000000) - 1 TB:\n", block_1tb);
+    printf("\nBlock %lu (0x0000040000000000) - 1 TB:\n", block_1tb);
     helix2_buffer_set_next_block(&ctx, block_1tb);
     uint32_t expected_low = (uint32_t)(block_1tb & 0xFFFFFFFF);
     uint32_t expected_high = (uint32_t)((block_1tb >> 32) & 0xFFFFFFFF);
@@ -300,7 +300,7 @@ void test_64bit_counter(void) {
     
     // Test 5: Maximum block index (2^64 - 1)
     uint64_t max_block = 0xFFFFFFFFFFFFFFFFULL;
-    printf("\nBlock %llu (0xFFFFFFFFFFFFFFFF) - Maximum:\n", max_block);
+    printf("\nBlock %lu (0xFFFFFFFFFFFFFFFF) - Maximum:\n", max_block);
     helix2_buffer_set_next_block(&ctx, max_block);
     printf("  state[10] = 0x%08X (should be 0xFFFFFFFF)\n", ctx.keystream.state[10]);
     printf("  state[11] = 0x%08X (should be nonce[0] XOR 0xFFFFFFFF)\n", ctx.keystream.state[11]);
@@ -319,7 +319,7 @@ void test_64bit_counter(void) {
     helix2_buffer_set_next_block(&ctx1, test_block);
     helix2_buffer_set_next_block(&ctx2, test_block);
     
-    printf("\nNonce differentiation test at block %llu:\n", test_block);
+    printf("\nNonce differentiation test at block %lu:\n", test_block);
     printf("  nonce1: state[11] = 0x%08X\n", ctx1.keystream.state[11]);
     printf("  nonce2: state[11] = 0x%08X\n", ctx2.keystream.state[11]);
     assert(ctx1.keystream.state[11] != ctx2.keystream.state[11]);
