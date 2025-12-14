@@ -56,6 +56,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <inttypes.h>
 
 #define BUFFER_SIZE 1024
 #define PROGRESS_WIDTH 10
@@ -270,7 +271,7 @@ int main(int argc, char *argv[]) {
         print_progress(file_offset, file_size);
     }
 
-    printf("\n\nDone, processed %lu bytes\n", file_offset);
+    printf("\n\nDone, processed %" PRIu64 " bytes\n", file_offset);
     
     fclose(fin);
     fclose(fout);
