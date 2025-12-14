@@ -184,9 +184,6 @@ void test_entropy(void) {
 
 void test_vectors(void) {
     // Placeholder for known-answer tests
-    // Implement specific test vectors as needed
-    // https://datatracker.ietf.org/doc/html/draft-agl-tls-chacha20poly1305-04#section-7
-    // 2917185654
 
     helix2_context_t ctx;
     uint8_t vector_nonce[20] = {0};  // All zeros
@@ -227,7 +224,7 @@ void test_vectors(void) {
     assert(bytes[2] == 0x5A);
     assert(bytes[3] == 0xB0);    
 
-    uint8_t vector_keyRFC8439[32] = {0x00, 0x01, 0x02, 0x03,
+    uint8_t vector_keyV3[32] = {0x00, 0x01, 0x02, 0x03,
                                      0x04, 0x05, 0x06, 0x07,
                                      0x08, 0x09, 0x0A, 0x0B,
                                      0x0C, 0x0D, 0x0E, 0x0F,
@@ -235,13 +232,13 @@ void test_vectors(void) {
                                      0x14, 0x15, 0x16, 0x17,
                                      0x18, 0x19, 0x1A, 0x1B,
                                      0x1C, 0x1D, 0x1E, 0x1F};
-    uint8_t vector_nonceRFC8439[16] = {0x00, 0x00, 0x00, 0x09,
+    uint8_t vector_nonceV3[16] = {0x00, 0x00, 0x00, 0x09,
                                        0x00, 0x00, 0x00, 0x4A,
                                        0x00, 0x00, 0x00, 0x00,
                                        0x00, 0x00, 0x00, 0x00};
     vector_nonce2[11] = 0x01;  // Last BYTE = 1
 
-    helix2_initialize_context(&ctx, vector_keyRFC8439, vector_nonceRFC8439);
+    helix2_initialize_context(&ctx, vector_keyV3, vector_nonceV3);
     helix2_buffer_next_block(&ctx);
     debug_print_state(&ctx);
     debug_print_keystream(&ctx);
