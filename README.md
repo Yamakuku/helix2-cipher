@@ -24,6 +24,7 @@ Helix-2 is a stream cipher that explores nested ARX operations for higher per-op
 - **Nonce Size**: 160-bit (20 bytes)
 - **Block Size**: 64 bytes
 - **Rounds**: 2 rounds with intermediate state addition
+- **Pattern**: 12 shuffles per round (Row-wise mixing (horizontal), Column-wise mixing (vertical) and Diagonal mixing (cross-diffusion)
 - **Operations**: 8 operations per shuffle (4 compound + 4 simple)
 - **Counter**: 64-bit block counter supporting massive data volumes
 
@@ -171,6 +172,8 @@ Each round performs:
 4. State addition
 
 The shuffle operation combines compound and simple ARX operations with varying rotation constants.
+
+For more information, goto https://github.com/Yamakuku/helix2-cipher/wiki
 
 ## License
 

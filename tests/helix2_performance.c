@@ -5,6 +5,9 @@
  * Helix-2 is an educational ARX (Add-Rotate-XOR) stream cipher inspired by
  * ChaCha20 but using nested operations for higher per-operation complexity.
  * 
+ * WARNING: This cipher is experimental and has NOT undergone formal 
+ * cryptanalysis. It should NOT be used for production security applications.
+ *  
  * @author Jarl "Yamakuku" Lindeneg
  * @date December 8, 2025
  * @version 2.1

@@ -4,6 +4,9 @@
  * 
  * Helix-2 is an educational ARX (Add-Rotate-XOR) stream cipher inspired by
  * ChaCha20 but using nested operations for higher per-operation complexity.
+ *
+ * WARNING: This cipher is experimental and has NOT undergone formal 
+ * cryptanalysis. It should NOT be used for production security applications.
  * 
  * @author Jarl "Yamakuku" Lindeneg
  * @date December 8, 2025
@@ -34,6 +37,7 @@
 #include "../src/helix2.h"
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
 #include <assert.h>
 
 uint8_t key[32] = {
@@ -184,9 +188,6 @@ void test_entropy(void) {
 
 void test_vectors(void) {
     // Placeholder for known-answer tests
-    // Implement specific test vectors as needed
-    // https://datatracker.ietf.org/doc/html/draft-agl-tls-chacha20poly1305-04#section-7
-    // 2917185654
 
     helix2_context_t ctx;
     uint8_t vector_nonce[20] = {0};  // All zeros
@@ -227,7 +228,7 @@ void test_vectors(void) {
     assert(bytes[2] == 0x5A);
     assert(bytes[3] == 0xB0);    
 
-    uint8_t vector_keyRFC8439[32] = {0x00, 0x01, 0x02, 0x03,
+    uint8_t vector_keyV3[32] = {0x00, 0x01, 0x02, 0x03,
                                      0x04, 0x05, 0x06, 0x07,
                                      0x08, 0x09, 0x0A, 0x0B,
                                      0x0C, 0x0D, 0x0E, 0x0F,
@@ -235,13 +236,13 @@ void test_vectors(void) {
                                      0x14, 0x15, 0x16, 0x17,
                                      0x18, 0x19, 0x1A, 0x1B,
                                      0x1C, 0x1D, 0x1E, 0x1F};
-    uint8_t vector_nonceRFC8439[16] = {0x00, 0x00, 0x00, 0x09,
+    uint8_t vector_nonceV3[16] = {0x00, 0x00, 0x00, 0x09,
                                        0x00, 0x00, 0x00, 0x4A,
                                        0x00, 0x00, 0x00, 0x00,
                                        0x00, 0x00, 0x00, 0x00};
     vector_nonce2[11] = 0x01;  // Last BYTE = 1
 
-    helix2_initialize_context(&ctx, vector_keyRFC8439, vector_nonceRFC8439);
+    helix2_initialize_context(&ctx, vector_keyV3, vector_nonceV3);
     helix2_buffer_next_block(&ctx);
     debug_print_state(&ctx);
     debug_print_keystream(&ctx);
@@ -270,7 +271,7 @@ void test_64bit_counter(void) {
     
     // Test 2: Block at 274 GB boundary (2^32 - 1)
     uint64_t block_274gb = 0xFFFFFFFFULL;  // 4,294,967,295 blocks
-    printf("\nBlock %llu (0x00000000FFFFFFFF) - 274 GB boundary:\n", block_274gb);
+    printf("\nBlock %" PRIu64 " (0x00000000FFFFFFFF) - 274 GB boundary:\n", block_274gb);
     helix2_buffer_set_next_block(&ctx, block_274gb);
     printf("  state[10] = 0x%08X (should be 0xFFFFFFFF)\n", ctx.keystream.state[10]);
     printf("  state[11] = 0x%08X (should be nonce[0] XOR 0 = nonce[0])\n", ctx.keystream.state[11]);
@@ -279,7 +280,7 @@ void test_64bit_counter(void) {
     
     // Test 3: Block just after 274 GB (2^32)
     uint64_t block_after_274gb = 0x100000000ULL;  // 4,294,967,296 blocks
-    printf("\nBlock %llu (0x0000000100000000) - Just after 274 GB:\n", block_after_274gb);
+    printf("\nBlock %" PRIu64 " (0x0000000100000000) - Just after 274 GB:\n", block_after_274gb);
     helix2_buffer_set_next_block(&ctx, block_after_274gb);
     printf("  state[10] = 0x%08X (should be 0x00000000)\n", ctx.keystream.state[10]);
     printf("  state[11] = 0x%08X (should be nonce[0] XOR 1)\n", ctx.keystream.state[11]);
@@ -288,7 +289,7 @@ void test_64bit_counter(void) {
     
     // Test 4: Very large block (1 TB = ~17.6 billion blocks)
     uint64_t block_1tb = 17592186044416ULL / 64;  // 1 TB in blocks
-    printf("\nBlock %llu (0x0000040000000000) - 1 TB:\n", block_1tb);
+    printf("\nBlock %" PRIu64 " (0x0000040000000000) - 1 TB:\n", block_1tb);
     helix2_buffer_set_next_block(&ctx, block_1tb);
     uint32_t expected_low = (uint32_t)(block_1tb & 0xFFFFFFFF);
     uint32_t expected_high = (uint32_t)((block_1tb >> 32) & 0xFFFFFFFF);
@@ -300,7 +301,7 @@ void test_64bit_counter(void) {
     
     // Test 5: Maximum block index (2^64 - 1)
     uint64_t max_block = 0xFFFFFFFFFFFFFFFFULL;
-    printf("\nBlock %llu (0xFFFFFFFFFFFFFFFF) - Maximum:\n", max_block);
+    printf("\nBlock %" PRIu64 " (0xFFFFFFFFFFFFFFFF) - Maximum:\n", max_block);
     helix2_buffer_set_next_block(&ctx, max_block);
     printf("  state[10] = 0x%08X (should be 0xFFFFFFFF)\n", ctx.keystream.state[10]);
     printf("  state[11] = 0x%08X (should be nonce[0] XOR 0xFFFFFFFF)\n", ctx.keystream.state[11]);
@@ -319,7 +320,7 @@ void test_64bit_counter(void) {
     helix2_buffer_set_next_block(&ctx1, test_block);
     helix2_buffer_set_next_block(&ctx2, test_block);
     
-    printf("\nNonce differentiation test at block %llu:\n", test_block);
+    printf("\nNonce differentiation test at block %" PRIu64 ":\n", test_block);
     printf("  nonce1: state[11] = 0x%08X\n", ctx1.keystream.state[11]);
     printf("  nonce2: state[11] = 0x%08X\n", ctx2.keystream.state[11]);
     assert(ctx1.keystream.state[11] != ctx2.keystream.state[11]);

@@ -7,17 +7,7 @@
  * 
  * WARNING: This cipher is experimental and has NOT undergone formal 
  * cryptanalysis. It should NOT be used for production security applications.
- * For real-world use, please use ChaCha20, AES-GCM, or other standardized ciphers.
- * 
- * Security: Passes Dieharder and PractRand statistical tests (32GB)
- * 
- * Design:
- * - 256-bit key (32 bytes)
- * - 160-bit nonce (20 bytes)
- * - 64-byte blocks
- * - 2 rounds with intermediate state addition
- * - 8 operations per shuffle (4 compound + 4 simple)
- * 
+  * 
  * @author Jarl "Yamakuku" Lindeneg
  * @date December 8, 2025
  * @version 2.1
@@ -44,12 +34,19 @@
  * SOFTWARE.
  */
 
+/* Enable large file support on Linux/POSIX systems */
+#ifndef _WIN32
+    #define _POSIX_C_SOURCE 200112L
+    #define _FILE_OFFSET_BITS 64
+#endif
+
 #include "../src/helix2.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <inttypes.h>
 
 #define BUFFER_SIZE 1024
 #define PROGRESS_WIDTH 10
@@ -66,8 +63,6 @@ void print_progress(uint64_t current, uint64_t total) {
     
     unsigned int percent = (unsigned int)(((double)current / (double)total) * 100.0);
     unsigned int filled = (unsigned int)(((double)current / (double)total) * (double)PROGRESS_WIDTH);
-    
-    //printf("%llu %llu %u %u\n",current, total, percent, filled);
 
     /* Only print if the bar changed */
     if (percent != last_percent) {
@@ -266,7 +261,7 @@ int main(int argc, char *argv[]) {
         print_progress(file_offset, file_size);
     }
 
-    printf("\n\nDone, processed %llu bytes\n", file_offset);
+    printf("\n\nDone, processed %" PRIu64 " bytes\n", file_offset);
     
     fclose(fin);
     fclose(fout);
