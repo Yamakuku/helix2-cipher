@@ -67,11 +67,17 @@ HELIX2_API void helix2_initialize_context(helix2_context_t* context, const uint8
     context->keystream.state[1] = _pack4(&magic_constant[4]);   
 
     // Pack key using _pack4 (since key comes as bytes)
-    for (int i = 0; i < 8; i++) {
-        context->keystream.state[2 + i] = _pack4(&context->key[i * 4]);
-    }
+    context->keystream.state[2] = _pack4(&context->key[0]);
+    context->keystream.state[3] = _pack4(&context->key[4]);
+    context->keystream.state[4] = _pack4(&context->key[8]);
+    context->keystream.state[5] = _pack4(&context->key[12]);
+    context->keystream.state[6] = _pack4(&context->key[16]);
+    context->keystream.state[7] = _pack4(&context->key[20]);
+    context->keystream.state[8] = _pack4(&context->key[24]);
+    context->keystream.state[9] = _pack4(&context->key[28]);
 
 	context->keystream.state[10] = 0;                           // This will hold the block index, assigned later
+    
     // Pack nonce using _pack4 (since nonce comes as bytes)
 	context->keystream.state[11] = _pack4(&context->nonce[0]);  // The high bits of the block index, will be XORed here later
 	context->keystream.state[12] = _pack4(&context->nonce[4]);
@@ -81,6 +87,17 @@ HELIX2_API void helix2_initialize_context(helix2_context_t* context, const uint8
   
     context->keystream.last_block_index = 0;                    // We will start by preparing block 0
     helix2_buffer_set_next_block(context, 0);
+}
+
+// Set the keystream block index
+void helix2_buffer_set_next_block(helix2_context_t* context, Helix2_Block_Index block_index) {
+    context->keystream.current_block_index = block_index;
+    _helix2_initialize_keystream(context);       
+}
+
+// Set the keystream to the next sequential block
+void helix2_buffer_next_block(helix2_context_t* context) {
+    helix2_buffer_set_next_block(context, context->keystream.current_block_index + 1);
 }
 
 // Encrypt/Decrypt a single byte at a given offset
@@ -148,17 +165,6 @@ static inline uint32_t _pack4(const uint8_t *a) {
 	res |= (uint32_t)a[2] << 2 * 8;
 	res |= (uint32_t)a[3] << 3 * 8;
 	return res;
-}
-
-// Set the keystream block index
-void helix2_buffer_set_next_block(helix2_context_t* context, Helix2_Block_Index block_index) {
-    context->keystream.current_block_index = block_index;
-    _helix2_initialize_keystream(context);       
-}
-
-// Set the keystream to the next sequential block
-void helix2_buffer_next_block(helix2_context_t* context) {
-    helix2_buffer_set_next_block(context, context->keystream.current_block_index + 1);
 }
 
 // The core Helix2 keystream operations
