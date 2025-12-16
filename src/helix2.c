@@ -1,8 +1,8 @@
 /**
  * @file helix2.c
- * @brief Helix-2 Stream Cipher implementation
+ * @brief Helix2 Stream Cipher implementation
  * 
- * Helix-2 is an educational ARX (Add-Rotate-XOR) stream cipher inspired by
+ * Helix2-cipher is an educational ARX (Add-Rotate-XOR) stream cipher inspired by
  * ChaCha20 but using nested operations for higher per-operation complexity.
  * 
  * WARNING: This cipher is experimental and has NOT undergone formal 
@@ -57,7 +57,7 @@ static inline uint32_t _rotl32(uint32_t x, int n);
 static inline uint32_t _pack4(const uint8_t *a);
 
 // Exposed functions
-// Initialize the Helix-2 context with key and nonce
+// Initialize the Helix2 context with key and nonce
 HELIX2_API void helix2_initialize_context(helix2_context_t* context, const uint8_t* key, uint8_t* nonce) {
     // Prepare the context
     memset(context, 0, sizeof(helix2_context_t));

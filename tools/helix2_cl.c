@@ -1,8 +1,8 @@
 /**
  * @file helix2-cl.c
- * @brief Helix-2 Stream Cipher implementation, command-line tool example
+ * @brief Helix2 Stream Cipher implementation, command-line tool example
  * 
- * Helix-2 is an educational ARX (Add-Rotate-XOR) stream cipher inspired by
+ * Helix2-cipher is an educational ARX (Add-Rotate-XOR) stream cipher inspired by
  * ChaCha20 but using nested operations for higher per-operation complexity.
  * 
  * WARNING: This cipher is experimental and has NOT undergone formal 

@@ -1,4 +1,4 @@
-# Helix-2 Stream Cipher
+# Helix2 Stream Cipher
 
 So one day I thought
 
@@ -6,7 +6,7 @@ So one day I thought
 
 Discovering the stream cipher design, where it is possible to process down to a single byte, anywhere in the buffer, was an eye opener.
 
-And sometimes later Helix-2 was born. An educational ARX (Add-Rotate-XOR) stream cipher (like ChaCha20), but with some fundemental differences, designed for learning and experimentation with cryptographic primitives.
+And sometimes later Helix2 was born. An educational ARX (Add-Rotate-XOR) stream cipher (like ChaCha20), but with some fundemental differences, designed for learning and experimentation with cryptographic primitives.
 
 Though the process was as much more on how to test your cipher, going back and forth, untill you have a result, that would justify all the time you spend on this project.
 
@@ -16,7 +16,7 @@ Though the process was as much more on how to test your cipher, going back and f
 
 ## Overview
 
-Helix-2 is a stream cipher that explores nested ARX operations for higher per-operation complexity compared to traditional designs. It was created as an educational project to understand stream cipher design principles.
+Helix2 is a stream cipher that explores nested ARX operations for higher per-operation complexity compared to traditional designs. It was created as an educational project to understand stream cipher design principles.
 
 ### Design Specifications
 
@@ -42,7 +42,7 @@ Performance comparison on the same hardware:
 | Cipher      | Average Throughput |
 |-------------|-------------------|
 | ChaCha20    | ~530 MB/s         |
-| Helix-2     | ~660 MB/s         |
+| Helix2      | ~660 MB/s         |
 
 *Note: Benchmarks performed on a single core. Performance may vary by platform.*
 

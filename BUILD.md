@@ -1,6 +1,6 @@
-# Building Helix-2 Cipher
+# Building Helix2-cipher
 
-This document provides detailed instructions for building the Helix-2 stream cipher on various platforms.
+This document provides detailed instructions for building the Helix2 stream cipher on various platforms.
 
 ## Table of Contents
 
@@ -107,7 +107,7 @@ gcc myprogram.o -L/path/to/helix2-cipher/build/release -llibhelix2.a -o myprogra
 ## Test the CLI Tool
 
 ### Create test file
-echo "Hello, Helix-2!" > test.txt
+echo "Hello, Helix2!" > test.txt
 
 ### Encrypt
 ./build/release/helix2_cl -e -p "test123" -n 00000000000000000000000000000000000000000000 test.txt -o test.enc

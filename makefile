@@ -1,4 +1,4 @@
-# Helix-2 Stream Cipher - Build Configuration
+# Helix2 Stream Cipher - Build Configuration
 # Copyright (c) 2025 Jarl "Yamakuku" Lindeneg
 # License: MIT
 
