@@ -7,17 +7,7 @@
  * 
  * WARNING: This cipher is experimental and has NOT undergone formal 
  * cryptanalysis. It should NOT be used for production security applications.
- * For real-world use, please use ChaCha20, AES-GCM, or other standardized ciphers.
- * 
- * Security: Passes Dieharder and PractRand statistical tests (32GB)
- * 
- * Design:
- * - 256-bit key (32 bytes)
- * - 160-bit nonce (20 bytes)
- * - 64-byte blocks
- * - 2 rounds with intermediate state addition
- * - 8 operations per shuffle (4 compound + 4 simple)
- * 
+  * 
  * @author Jarl "Yamakuku" Lindeneg
  * @date December 8, 2025
  * @version 2.1

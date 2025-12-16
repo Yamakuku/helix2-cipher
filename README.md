@@ -172,6 +172,8 @@ Each round performs:
 
 The shuffle operation combines compound and simple ARX operations with varying rotation constants.
 
+For more information, goto https://github.com/Yamakuku/helix2-cipher/wiki
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
