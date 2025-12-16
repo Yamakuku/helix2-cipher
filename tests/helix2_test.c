@@ -1,8 +1,8 @@
 /**
  * @file helix2_test.c
- * @brief Helix-2 Stream Cipher implementation tests
+ * @brief Helix2 Stream Cipher implementation tests
  * 
- * Helix-2 is an educational ARX (Add-Rotate-XOR) stream cipher inspired by
+ * Helix2-cipher is an educational ARX (Add-Rotate-XOR) stream cipher inspired by
  * ChaCha20 but using nested operations for higher per-operation complexity.
  *
  * WARNING: This cipher is experimental and has NOT undergone formal 

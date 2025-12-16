@@ -1,8 +1,8 @@
 /**
  * @file helix2.c
- * @brief Helix-2 Stream Cipher implementation, simple performance test example
+ * @brief Helix2 Stream Cipher implementation, simple performance test example
  * 
- * Helix-2 is an educational ARX (Add-Rotate-XOR) stream cipher inspired by
+ * Helix2-cipher is an educational ARX (Add-Rotate-XOR) stream cipher inspired by
  * ChaCha20 but using nested operations for higher per-operation complexity.
  * 
  * WARNING: This cipher is experimental and has NOT undergone formal 
@@ -73,7 +73,7 @@ double benchmark_throughput(size_t buffer_size, int iterations) {
 }
 
 void test_performance() {
-    printf("\nHelix-2 Performance Benchmark\n");
+    printf("\nHelix2 Performance Benchmark\n");
     printf("==============================\n\n");
     
     // Test different buffer sizes

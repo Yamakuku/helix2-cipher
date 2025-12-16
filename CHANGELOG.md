@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the Helix-2 Stream Cipher project will be documented in this file.
+All notable changes to the Helix2 Stream Cipher project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -35,7 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.0.0] - 2025-12-01
 
 ### Added
-- Initial implementation of Helix-2 stream cipher
+- Initial implementation of Helix2 stream cipher
 - ARX (Add-Rotate-XOR) based design
 - 2-round structure with state addition
 - 256-bit key and 160-bit nonce support
