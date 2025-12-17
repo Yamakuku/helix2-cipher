@@ -23,10 +23,10 @@ Helix2 is a stream cipher that explores nested ARX operations for higher per-ope
 - **Key Size**: 256-bit (32 bytes)
 - **Nonce Size**: 160-bit (20 bytes)
 - **Block Size**: 64 bytes
-- **Rounds**: 2 rounds with intermediate state addition
-- **Pattern**: 12 shuffles per round (Row-wise mixing (horizontal), Column-wise mixing (vertical) and Diagonal mixing (cross-diffusion)
-- **Operations**: 8 operations per shuffle (4 compound + 4 simple)
 - **Counter**: 64-bit block counter supporting massive data volumes
+- **Rounds**: each round with intermediate state addition
+- **Pattern**: 8 shuffles per round, 1st round ; Row-wise mixing (horizontal) and Diagonal mixing (cross-diffusion), 2nd round ; Column-wise mixing (vertical) and mirrored Diagonal mixing (cross-diffusion)
+- **Operations**: 8 operations per shuffle (4 compound + 4 simple)
 
 ### Statistical Testing Results
 
@@ -41,8 +41,8 @@ Performance comparison on the same hardware:
 
 | Cipher      | Average Throughput |
 |-------------|-------------------|
-| ChaCha20    | ~530 MB/s         |
-| Helix2      | ~660 MB/s         |
+| ChaCha20    | ~575 MB/s         |
+| Helix2      | ~850 MB/s         |
 
 *Note: Benchmarks performed on a single core. Performance may vary by platform.*
 

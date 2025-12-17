@@ -15,8 +15,8 @@
  * - 160-bit nonce (20 bytes)
  * - 64-byte blocks
  * - 8 operations per shuffle (4 compound + 4 simple)
- * - 12 shuffles per round (Row-wise mixing (horizontal), Column-wise mixing (vertical) and Diagonal mixing (cross-diffusion)
- * - 2 rounds with intermediate state addition
+ * - 8 shuffles per round, 1st round ; Row-wise mixing (horizontal) and Diagonal mixing (cross-diffusion), 2nd round ; Column-wise mixing (vertical) and mirrored Diagonal mixing (cross-diffusion)
+ * - each round with intermediate state addition
  * 
  * For more information: https://github.com/Yamakuku/helix2-cipher
  * 
@@ -194,54 +194,44 @@ void _helix2_initialize_keystream(helix2_context_t* context) {
     // Initialize the stream with the current state
     memcpy(context->keystream.stream, context->keystream.state, HELIX2_KEYSTREAM_SIZE);
 
-    // Round 1
-    _helix2_shuffle(context->keystream.stream, 0, 1, 2, 3);
-    _helix2_shuffle(context->keystream.stream, 4, 5, 6, 7);
-    _helix2_shuffle(context->keystream.stream, 8, 9, 10, 11);
-    _helix2_shuffle(context->keystream.stream, 12, 13, 14, 15);
 
-    _helix2_shuffle(context->keystream.stream, 0, 4, 8, 12);
-    _helix2_shuffle(context->keystream.stream, 1, 5, 9, 13);
-    _helix2_shuffle(context->keystream.stream, 2, 6, 10, 14);
-    _helix2_shuffle(context->keystream.stream, 3, 7, 11, 15);        
+    _helix2_shuffle(context->keystream.stream, 0,  1,  2,  3);
+    _helix2_shuffle(context->keystream.stream, 4,  5,  6,  7);
+    _helix2_shuffle(context->keystream.stream, 8,  9,  10, 11);
+    _helix2_shuffle(context->keystream.stream, 12, 13, 14, 15);      
 
     _helix2_shuffle(context->keystream.stream, 0, 5, 10, 15);
     _helix2_shuffle(context->keystream.stream, 1, 6, 11, 12);
-    _helix2_shuffle(context->keystream.stream, 2, 7, 8, 13);
-    _helix2_shuffle(context->keystream.stream, 3, 4, 9, 14);
+    _helix2_shuffle(context->keystream.stream, 2, 7, 8,  13);
+    _helix2_shuffle(context->keystream.stream, 3, 4, 9,  14);    
 
     // Add the original state to the stream
-    context->keystream.stream[0] += context->keystream.state[0];   context->keystream.stream[1] += context->keystream.state[1];
-    context->keystream.stream[2] += context->keystream.state[2];   context->keystream.stream[3] += context->keystream.state[3];
-    context->keystream.stream[4] += context->keystream.state[4];   context->keystream.stream[5] += context->keystream.state[5];
-    context->keystream.stream[6] += context->keystream.state[6];   context->keystream.stream[7] += context->keystream.state[7];
-    context->keystream.stream[8] += context->keystream.state[8];   context->keystream.stream[9] += context->keystream.state[9];
+    context->keystream.stream[0]  += context->keystream.state[0];  context->keystream.stream[1]  += context->keystream.state[1];
+    context->keystream.stream[2]  += context->keystream.state[2];  context->keystream.stream[3]  += context->keystream.state[3];
+    context->keystream.stream[4]  += context->keystream.state[4];  context->keystream.stream[5]  += context->keystream.state[5];
+    context->keystream.stream[6]  += context->keystream.state[6];  context->keystream.stream[7]  += context->keystream.state[7];
+    context->keystream.stream[8]  += context->keystream.state[8];  context->keystream.stream[9]  += context->keystream.state[9];
     context->keystream.stream[10] += context->keystream.state[10]; context->keystream.stream[11] += context->keystream.state[11];
     context->keystream.stream[12] += context->keystream.state[12]; context->keystream.stream[13] += context->keystream.state[13];
     context->keystream.stream[14] += context->keystream.state[14]; context->keystream.stream[15] += context->keystream.state[15];
 
-    // Round 2
-    _helix2_shuffle(context->keystream.stream, 0, 1, 2, 3);
-    _helix2_shuffle(context->keystream.stream, 4, 5, 6, 7);
-    _helix2_shuffle(context->keystream.stream, 8, 9, 10, 11);
-    _helix2_shuffle(context->keystream.stream, 12, 13, 14, 15);
-
-    _helix2_shuffle(context->keystream.stream, 0, 4, 8, 12);
-    _helix2_shuffle(context->keystream.stream, 1, 5, 9, 13);
+    // Round 2 (Shuffle columns and mirrored diagonal)
+    _helix2_shuffle(context->keystream.stream, 0, 4, 8,  12);
+    _helix2_shuffle(context->keystream.stream, 1, 5, 9,  13);
     _helix2_shuffle(context->keystream.stream, 2, 6, 10, 14);
     _helix2_shuffle(context->keystream.stream, 3, 7, 11, 15);        
 
-    _helix2_shuffle(context->keystream.stream, 0, 5, 10, 15);
-    _helix2_shuffle(context->keystream.stream, 1, 6, 11, 12);
-    _helix2_shuffle(context->keystream.stream, 2, 7, 8, 13);
-    _helix2_shuffle(context->keystream.stream, 3, 4, 9, 14);
+    _helix2_shuffle(context->keystream.stream, 3, 6, 9,  12);
+    _helix2_shuffle(context->keystream.stream, 2, 5, 8,  15);
+    _helix2_shuffle(context->keystream.stream, 1, 4, 11, 14);
+    _helix2_shuffle(context->keystream.stream, 0, 7, 10, 13);
 
     // Add the original state to the stream, round 2
-    context->keystream.stream[0] += context->keystream.state[0];   context->keystream.stream[1] += context->keystream.state[1];
-    context->keystream.stream[2] += context->keystream.state[2];   context->keystream.stream[3] += context->keystream.state[3];
-    context->keystream.stream[4] += context->keystream.state[4];   context->keystream.stream[5] += context->keystream.state[5];
-    context->keystream.stream[6] += context->keystream.state[6];   context->keystream.stream[7] += context->keystream.state[7];
-    context->keystream.stream[8] += context->keystream.state[8];   context->keystream.stream[9] += context->keystream.state[9];
+    context->keystream.stream[0]  += context->keystream.state[0];  context->keystream.stream[1]  += context->keystream.state[1];
+    context->keystream.stream[2]  += context->keystream.state[2];  context->keystream.stream[3]  += context->keystream.state[3];
+    context->keystream.stream[4]  += context->keystream.state[4];  context->keystream.stream[5]  += context->keystream.state[5];
+    context->keystream.stream[6]  += context->keystream.state[6];  context->keystream.stream[7]  += context->keystream.state[7];
+    context->keystream.stream[8]  += context->keystream.state[8];  context->keystream.stream[9]  += context->keystream.state[9];
     context->keystream.stream[10] += context->keystream.state[10]; context->keystream.stream[11] += context->keystream.state[11];
     context->keystream.stream[12] += context->keystream.state[12]; context->keystream.stream[13] += context->keystream.state[13];
     context->keystream.stream[14] += context->keystream.state[14]; context->keystream.stream[15] += context->keystream.state[15];

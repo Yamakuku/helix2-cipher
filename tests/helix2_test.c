@@ -198,10 +198,10 @@ void test_vectors(void) {
     debug_print_keystream(&ctx);
 
     uint8_t* bytes = (uint8_t*)ctx.keystream.stream;
-    assert(bytes[0] == 0x14);
-    assert(bytes[1] == 0x84);   
-    assert(bytes[2] == 0xEC);
-    assert(bytes[3] == 0xFD);
+    assert(bytes[0] == 0x81);
+    assert(bytes[1] == 0x53);   
+    assert(bytes[2] == 0x4D);
+    assert(bytes[3] == 0xFB);
 
     uint8_t vector_key2[32] = {0};
     vector_key2[31] = 0x01;  // Last BYTE = 1 (not last word!)
@@ -210,10 +210,10 @@ void test_vectors(void) {
     debug_print_state(&ctx);
     debug_print_keystream(&ctx);
 
-    assert(bytes[0] == 0xEF);
-    assert(bytes[1] == 0x71);   
-    assert(bytes[2] == 0xCB);
-    assert(bytes[3] == 0xC9);
+    assert(bytes[0] == 0x74);
+    assert(bytes[1] == 0x6A);   
+    assert(bytes[2] == 0xA3);
+    assert(bytes[3] == 0x04);
 
     uint8_t vector_key3[32] = {0};
     uint8_t vector_nonce2[16] = {0};
@@ -223,10 +223,10 @@ void test_vectors(void) {
     debug_print_state(&ctx);
     debug_print_keystream(&ctx);
 
-    assert(bytes[0] == 0xF6);
-    assert(bytes[1] == 0x8C);   
-    assert(bytes[2] == 0x5A);
-    assert(bytes[3] == 0xB0);    
+    assert(bytes[0] == 0xC8);
+    assert(bytes[1] == 0x3E);   
+    assert(bytes[2] == 0xAA);
+    assert(bytes[3] == 0x0D);    
 
     uint8_t vector_keyV3[32] = {0x00, 0x01, 0x02, 0x03,
                                      0x04, 0x05, 0x06, 0x07,
@@ -247,10 +247,10 @@ void test_vectors(void) {
     debug_print_state(&ctx);
     debug_print_keystream(&ctx);
 
-    assert(bytes[0] == 0x89);
-    assert(bytes[1] == 0xA9);   
-    assert(bytes[2] == 0xBC);
-    assert(bytes[3] == 0x3F);        
+    assert(bytes[0] == 0x37);
+    assert(bytes[1] == 0xC7);   
+    assert(bytes[2] == 0x19);
+    assert(bytes[3] == 0xFE);        
 }
 
 void test_64bit_counter(void) {
