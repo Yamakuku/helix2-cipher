@@ -40,9 +40,9 @@ The cipher has been tested with industry-standard statistical test suites:
 Performance comparison on the same hardware:
 
 | Cipher      | Average Throughput |
-|-------------|-------------------|
-| ChaCha20    | ~575 MB/s         |
-| Helix2      | ~850 MB/s         |
+|-------------|--------------------|
+| ChaCha20    | ~575 MB/s          |
+| Helix2      | ~850 MB/s          |
 
 *Note: Benchmarks performed on a single core. Performance may vary by platform.*
 
