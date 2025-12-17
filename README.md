@@ -165,13 +165,19 @@ The cipher uses a 16-word (64-byte) state:
 
 ### Round Function
 
-Each round performs:
-1. Column mixing (4 shuffle operations)
-2. Row mixing (4 shuffle operations)
-3. Diagonal mixing (4 shuffle operations)
-4. State addition
+Two rounds are performed, each with different mixing patterns:
 
-The shuffle operation combines compound and simple ARX operations with varying rotation constants.
+**Round 1:**
+1. Row mixing (4 shuffle operations)
+2. Diagonal mixing (4 shuffle operations)
+3. State addition
+
+**Round 2:**
+1. Column mixing (4 shuffle operations)
+2. Mirrored diagonal mixing (4 shuffle operations)
+3. State addition
+
+Each shuffle operation combines 4 compound and 4 simple ARX operations with varying rotation constants.
 
 For more information, goto https://github.com/Yamakuku/helix2-cipher/wiki
 
