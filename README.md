@@ -23,10 +23,10 @@ Helix2 is a stream cipher that explores nested ARX operations for higher per-ope
 - **Key Size**: 256-bit (32 bytes)
 - **Nonce Size**: 160-bit (20 bytes)
 - **Block Size**: 64 bytes
-- **Rounds**: 2 rounds with intermediate state addition
-- **Pattern**: 12 shuffles per round (Row-wise mixing (horizontal), Column-wise mixing (vertical) and Diagonal mixing (cross-diffusion)
-- **Operations**: 8 operations per shuffle (4 compound + 4 simple)
 - **Counter**: 64-bit block counter supporting massive data volumes
+- **Rounds**: each round with intermediate state addition
+- **Pattern**: 8 shuffles per round, 1st round ; Row-wise mixing (horizontal) and Diagonal mixing (cross-diffusion), 2nd round ; Column-wise mixing (vertical) and mirrored Diagonal mixing (cross-diffusion)
+- **Operations**: 8 operations per shuffle (4 compound + 4 simple)
 
 ### Statistical Testing Results
 
@@ -40,9 +40,9 @@ The cipher has been tested with industry-standard statistical test suites:
 Performance comparison on the same hardware:
 
 | Cipher      | Average Throughput |
-|-------------|-------------------|
-| ChaCha20    | ~530 MB/s         |
-| Helix2      | ~660 MB/s         |
+|-------------|--------------------|
+| ChaCha20    | ~575 MB/s          |
+| Helix2      | ~850 MB/s          |
 
 *Note: Benchmarks performed on a single core. Performance may vary by platform.*
 
@@ -165,13 +165,19 @@ The cipher uses a 16-word (64-byte) state:
 
 ### Round Function
 
-Each round performs:
-1. Column mixing (4 shuffle operations)
-2. Row mixing (4 shuffle operations)
-3. Diagonal mixing (4 shuffle operations)
-4. State addition
+Two rounds are performed, each with different mixing patterns:
 
-The shuffle operation combines compound and simple ARX operations with varying rotation constants.
+**Round 1:**
+1. Row mixing (4 shuffle operations)
+2. Diagonal mixing (4 shuffle operations)
+3. State addition
+
+**Round 2:**
+1. Column mixing (4 shuffle operations)
+2. Mirrored diagonal mixing (4 shuffle operations)
+3. State addition
+
+Each shuffle operation combines 4 compound and 4 simple ARX operations with varying rotation constants.
 
 For more information, goto https://github.com/Yamakuku/helix2-cipher/wiki
 
