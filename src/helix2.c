@@ -93,7 +93,7 @@ HELIX2_API void helix2_initialize_context(helix2_context_t* context, const uint8
 //   The start_offset is the offset in the keystream where the buffer processing should begins.
 HELIX2_API void helix2_buffer(helix2_context_t* context, uint8_t* buffer, size_t size, uint64_t start_offset) {
     // Calculate starting block and offset within that block
-    Helix2_Block_Index current_block = start_offset / HELIX2_KEYSTREAM_SIZE;
+    uint64_t current_block = start_offset / HELIX2_KEYSTREAM_SIZE;
     uint8_t block_offset = start_offset % HELIX2_KEYSTREAM_SIZE;
 
     _helix2_initialize_keystream(context, current_block);
