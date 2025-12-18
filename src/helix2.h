@@ -19,7 +19,6 @@
 
 // HELIX2 definitions
 #define HELIX2_KEYSTREAM_SIZE 64
-typedef uint64_t    Helix2_Block_Index;
 
 typedef struct
 {
