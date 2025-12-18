@@ -64,7 +64,7 @@ void run_all_tests(void);
 
 void debug_print_state(helix2_context_t* context) {
     printf("State  8-bit serialized: ");
-    uint8_t* bytes = (uint8_t*)context->keystream.state;
+    uint8_t* bytes = (uint8_t*)context->state;
     for (int i = 0; i < 64; i++) {
         printf("%02x", bytes[i]);
         if ((i + 1) % 16 == 0) printf("\n                          ");
@@ -72,7 +72,7 @@ void debug_print_state(helix2_context_t* context) {
     }
     printf("\nState 32-bits dump :      ");
 
-    uint32_t* bytes32 = (uint32_t*)context->keystream.state;
+    uint32_t* bytes32 = (uint32_t*)context->state;
     for (int i = 0; i < 16; i++) {
         printf("%08x", bytes32[i]);
         if ((i + 1) % 4 == 0) printf("\n                          ");
@@ -84,7 +84,7 @@ void debug_print_state(helix2_context_t* context) {
 
 void debug_print_keystream(helix2_context_t* context) {
     printf("Keystream  8-bit serialized: ");
-    uint8_t* bytes = (uint8_t*)context->keystream.stream;
+    uint8_t* bytes = (uint8_t*)context->stream;
     for (int i = 0; i < 64; i++) {
         printf("%02x", bytes[i]);
         if ((i + 1) % 16 == 0) printf("\n                              ");
@@ -92,7 +92,7 @@ void debug_print_keystream(helix2_context_t* context) {
     }
     printf("\nKeystream 32-bits dump :      ");
 
-    uint32_t* bytes32 = (uint32_t*)context->keystream.stream;
+    uint32_t* bytes32 = (uint32_t*)context->stream;
     for (int i = 0; i < 16; i++) {
         printf("%08x", bytes32[i]);
         if ((i + 1) % 4 == 0) printf("\n                             ");
@@ -124,11 +124,11 @@ void test_symmetry(void) {
 
     for (int i = 0; i < 256; i++) plain[i] = (uint8_t)i;
 
-    for (int i = 0; i < 256; i++)
-        cipher[i] = helix2_byte(&enc, i, plain[i]);
+    memcpy(cipher, plain, 256);
+    helix2_buffer(&enc, cipher, 256, 0);
     
-    for (int i = 0; i < 256; i++)
-        result[i] = helix2_byte(&dec, i, cipher[i]);
+    memcpy(result, cipher, 256);    
+    helix2_buffer(&dec, result, 256, 0);
 
     for (int i = 0; i < 256; i++)
         assert(result[i] == plain[i]);
@@ -138,13 +138,22 @@ void test_determinism(void) {
     helix2_context_t ctx1, ctx2;
     uint8_t nonce[20] = { 0xBB, 0xBB, 0x22, 0x22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
+    uint8_t test1[256];
+    uint8_t test2[256];
+
+    for (int i = 0; i < 256; i++) {
+         test1[i] = (uint8_t)i;
+         test2[i] = (uint8_t)i; 
+    }
+
     helix2_initialize_context(&ctx1, key, nonce);
     helix2_initialize_context(&ctx2, key, nonce);
 
-    for (int i = 0; i < 512; i++) {
-        uint8_t b1 = helix2_byte(&ctx1, i, 0);
-        uint8_t b2 = helix2_byte(&ctx2, i, 0);
-        assert(b1 == b2);
+    helix2_buffer(&ctx1, test1, 256, 0);
+    helix2_buffer(&ctx1, test2, 256, 0);
+
+    for (int i = 0; i < 256; i++) {
+        assert(test1[i] == test2[i]);
     }
 }
 
@@ -156,14 +165,21 @@ void test_offset_seek(void) {
     helix2_initialize_context(&ctxB, key, nonce);
 
     // Generate full stream with ctxA
-    uint8_t stream[512];
-    for (uint32_t i = 0; i < 512; i++)
-        stream[i] = helix2_byte(&ctxA, i, 0);
+    uint8_t stream[512] = {0};
+    uint8_t stream_part[128] = {0};
+
+    for (int i = 0; i < 512; i++)
+        stream[i] = (uint8_t)i;
+
+    for (int i= 0; i < 128; i++)
+        stream_part[i] = (uint8_t)(i + 300);
+
+    helix2_buffer(&ctxA, stream, 512, 0);
+    helix2_buffer(&ctxB, stream_part, 128, 300);
         
     // Start ctxB at offset 300
-    for (uint32_t i = 300; i < 512; i++) {
-        uint8_t b = helix2_byte(&ctxB, i, 0);
-        assert(b == stream[i]);
+    for (uint32_t i = 300; i < 428; i++) {
+        assert(stream[i] == stream_part[i - 300]);
     }
 }
 
@@ -174,9 +190,10 @@ void test_entropy(void) {
     helix2_initialize_context(&ctx, key, nonce);
 
     uint64_t histogram[256] = {0};
+    uint8_t buffer[65536];
+    helix2_buffer(&ctx, buffer, 65536, 0);
     for (uint32_t i = 0; i < 65536; i++) {
-        uint8_t b = helix2_byte(&ctx, i, 0);
-        histogram[b]++;
+        histogram[buffer[i]]++;
     }
 
     // Expect roughly uniform distribution
@@ -192,12 +209,14 @@ void test_vectors(void) {
     helix2_context_t ctx;
     uint8_t vector_nonce[20] = {0};  // All zeros
     uint8_t vector_key[32] = {0};    // All zeros
+    uint8_t data[32] = {0};
 
     helix2_initialize_context(&ctx, vector_key, vector_nonce);
+    helix2_buffer(&ctx, data, 32, 0);
     debug_print_state(&ctx);
     debug_print_keystream(&ctx);
 
-    uint8_t* bytes = (uint8_t*)ctx.keystream.stream;
+    uint8_t* bytes = (uint8_t*)ctx.stream;
     assert(bytes[0] == 0x81);
     assert(bytes[1] == 0x53);   
     assert(bytes[2] == 0x4D);
@@ -207,6 +226,7 @@ void test_vectors(void) {
     vector_key2[31] = 0x01;  // Last BYTE = 1 (not last word!)
 
     helix2_initialize_context(&ctx, vector_key2, vector_nonce);
+    helix2_buffer(&ctx, data, 32, 0);
     debug_print_state(&ctx);
     debug_print_keystream(&ctx);
 
@@ -220,6 +240,7 @@ void test_vectors(void) {
     vector_nonce2[11] = 0x01;  // Last BYTE = 1
 
     helix2_initialize_context(&ctx, vector_key3, vector_nonce2);
+    helix2_buffer(&ctx, data, 32, 0);
     debug_print_state(&ctx);
     debug_print_keystream(&ctx);
 
@@ -243,7 +264,8 @@ void test_vectors(void) {
     vector_nonce2[11] = 0x01;  // Last BYTE = 1
 
     helix2_initialize_context(&ctx, vector_keyV3, vector_nonceV3);
-    helix2_buffer_next_block(&ctx);
+    uint8_t one_block_and_more[65];
+    helix2_buffer(&ctx, one_block_and_more, 65, 0);
     debug_print_state(&ctx);
     debug_print_keystream(&ctx);
 
@@ -259,54 +281,58 @@ void test_64bit_counter(void) {
     helix2_context_t ctx;
     uint8_t key[32] = {0};
     uint8_t nonce[20] = {0};
+    uint8_t test_data[8] = {0};
     
     helix2_initialize_context(&ctx, key, nonce);
     
     // Test 1: Block 0 (counter_low = 0, counter_high = 0)
     printf("Block 0 (0x0000000000000000):\n");
-    helix2_buffer_set_next_block(&ctx, 0);
-    printf("  state[10] = 0x%08X (should be 0x00000000)\n", ctx.keystream.state[10]);
-    printf("  state[11] = 0x%08X (should be nonce[0] XOR 0 = nonce[0])\n", ctx.keystream.state[11]);
-    assert(ctx.keystream.state[10] == 0x00000000);
+    printf("  state[10] = 0x%08X (should be 0x00000000)\n", ctx.state[10]);
+    printf("  state[11] = 0x%08X (should be nonce[0] XOR 0 = nonce[0])\n", ctx.state[11]);
+    assert(ctx.state[10] == 0x00000000);
     
     // Test 2: Block at 274 GB boundary (2^32 - 1)
     uint64_t block_274gb = 0xFFFFFFFFULL;  // 4,294,967,295 blocks
     printf("\nBlock %" PRIu64 " (0x00000000FFFFFFFF) - 274 GB boundary:\n", block_274gb);
-    helix2_buffer_set_next_block(&ctx, block_274gb);
-    printf("  state[10] = 0x%08X (should be 0xFFFFFFFF)\n", ctx.keystream.state[10]);
-    printf("  state[11] = 0x%08X (should be nonce[0] XOR 0 = nonce[0])\n", ctx.keystream.state[11]);
-    assert(ctx.keystream.state[10] == 0xFFFFFFFF);
-    assert(ctx.keystream.state[11] == (_pack4(&nonce[0]) ^ 0x00000000));
+    helix2_buffer(&ctx, test_data, 8, block_274gb * HELIX2_KEYSTREAM_SIZE);  // Advance to block
+    
+    printf("  state[10] = 0x%08X (should be 0xFFFFFFFF)\n", ctx.state[10]);
+    printf("  state[11] = 0x%08X (should be nonce[0] XOR 0 = nonce[0])\n", ctx.state[11]);
+    assert(ctx.state[10] == 0xFFFFFFFF);
+    assert(ctx.state[11] == (_pack4(&nonce[0]) ^ 0x00000000));
     
     // Test 3: Block just after 274 GB (2^32)
     uint64_t block_after_274gb = 0x100000000ULL;  // 4,294,967,296 blocks
     printf("\nBlock %" PRIu64 " (0x0000000100000000) - Just after 274 GB:\n", block_after_274gb);
-    helix2_buffer_set_next_block(&ctx, block_after_274gb);
-    printf("  state[10] = 0x%08X (should be 0x00000000)\n", ctx.keystream.state[10]);
-    printf("  state[11] = 0x%08X (should be nonce[0] XOR 1)\n", ctx.keystream.state[11]);
-    assert(ctx.keystream.state[10] == 0x00000000);
-    assert(ctx.keystream.state[11] == (_pack4(&nonce[0]) ^ 0x00000001));
+    helix2_buffer(&ctx, test_data, 8, block_after_274gb * HELIX2_KEYSTREAM_SIZE);  // Advance to block
+    printf("  state[10] = 0x%08X (should be 0x00000000)\n", ctx.state[10]);
+    printf("  state[11] = 0x%08X (should be nonce[0] XOR 1)\n", ctx.state[11]);
+    assert(ctx.state[10] == 0x00000000);
+    assert(ctx.state[11] == (_pack4(&nonce[0]) ^ 0x00000001));
     
     // Test 4: Very large block (1 TB = ~17.6 billion blocks)
     uint64_t block_1tb = 17592186044416ULL / 64;  // 1 TB in blocks
     printf("\nBlock %" PRIu64 " (0x0000040000000000) - 1 TB:\n", block_1tb);
-    helix2_buffer_set_next_block(&ctx, block_1tb);
+    helix2_buffer(&ctx, test_data, 8, block_1tb * HELIX2_KEYSTREAM_SIZE);  // Advance to block
     uint32_t expected_low = (uint32_t)(block_1tb & 0xFFFFFFFF);
     uint32_t expected_high = (uint32_t)((block_1tb >> 32) & 0xFFFFFFFF);
-    printf("  state[10] = 0x%08X (expected 0x%08X)\n", ctx.keystream.state[10], expected_low);
+    printf("  state[10] = 0x%08X (expected 0x%08X)\n", ctx.state[10], expected_low);
     printf("  state[11] = 0x%08X (expected nonce[0] XOR 0x%08X)\n", 
-           ctx.keystream.state[11], expected_high);
-    assert(ctx.keystream.state[10] == expected_low);
-    assert(ctx.keystream.state[11] == (_pack4(&nonce[0]) ^ expected_high));
+           ctx.state[11], expected_high);
+    assert(ctx.state[10] == expected_low);
+    assert(ctx.state[11] == (_pack4(&nonce[0]) ^ expected_high));
     
-    // Test 5: Maximum block index (2^64 - 1)
-    uint64_t max_block = 0xFFFFFFFFFFFFFFFFULL;
-    printf("\nBlock %" PRIu64 " (0xFFFFFFFFFFFFFFFF) - Maximum:\n", max_block);
-    helix2_buffer_set_next_block(&ctx, max_block);
-    printf("  state[10] = 0x%08X (should be 0xFFFFFFFF)\n", ctx.keystream.state[10]);
-    printf("  state[11] = 0x%08X (should be nonce[0] XOR 0xFFFFFFFF)\n", ctx.keystream.state[11]);
-    assert(ctx.keystream.state[10] == 0xFFFFFFFF);
-    assert(ctx.keystream.state[11] == (_pack4(&nonce[0]) ^ 0xFFFFFFFF));
+    // Test 5: Maximum offset (2^64 - 1 bytes)
+    // Maximum addressable block is 0xFFFFFFFFFFFFFFFF / 64 = 0x03FFFFFFFFFFFFFF
+    uint64_t max_offset = 0xFFFFFFFFFFFFFFFFULL - 9;
+    uint64_t max_block = max_offset / HELIX2_KEYSTREAM_SIZE;  // = 0x03FFFFFFFFFFFFFF
+    printf("\nMaximum offset %" PRIu64 " (0x%016" PRIX64 "), block %" PRIu64 " (0x%016" PRIX64 "):\n", 
+           max_offset, max_offset, max_block, max_block);
+    helix2_buffer(&ctx, test_data, 8, max_offset);
+    printf("  state[10] = 0x%08X (should be 0xFFFFFFFF)\n", ctx.state[10]);
+    printf("  state[11] = 0x%08X (should be nonce[0] XOR 0x03FFFFFF)\n", ctx.state[11]);
+    assert(ctx.state[10] == 0xFFFFFFFF);
+    assert(ctx.state[11] == (_pack4(&nonce[0]) ^ 0x03FFFFFF));
     
     // Test 6: Verify different nonces produce different keystreams for same block
     uint8_t nonce1[20] = {0x12, 0x34, 0x56, 0x78};
@@ -317,13 +343,13 @@ void test_64bit_counter(void) {
     helix2_initialize_context(&ctx2, key, nonce2);
     
     uint64_t test_block = 0x100000000ULL;  // Block where high bits = 1
-    helix2_buffer_set_next_block(&ctx1, test_block);
-    helix2_buffer_set_next_block(&ctx2, test_block);
+    helix2_buffer(&ctx1, test_data, 8, test_block * HELIX2_KEYSTREAM_SIZE);  // Advance to block
+    helix2_buffer(&ctx2, test_data, 8, test_block * HELIX2_KEYSTREAM_SIZE);  // Advance to block
     
     printf("\nNonce differentiation test at block %" PRIu64 ":\n", test_block);
-    printf("  nonce1: state[11] = 0x%08X\n", ctx1.keystream.state[11]);
-    printf("  nonce2: state[11] = 0x%08X\n", ctx2.keystream.state[11]);
-    assert(ctx1.keystream.state[11] != ctx2.keystream.state[11]);
+    printf("  nonce1: state[11] = 0x%08X\n", ctx1.state[11]);
+    printf("  nonce2: state[11] = 0x%08X\n", ctx2.state[11]);
+    assert(ctx1.state[11] != ctx2.state[11]);
     
     printf("\n- ALL 64-BIT COUNTER TESTS PASSED!\n");
 }

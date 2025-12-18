@@ -51,7 +51,7 @@
 #define _HELIX2_EXPORT
 
 // Internal helper function declarations
-void _helix2_initialize_keystream(helix2_context_t* context);
+void _helix2_initialize_keystream(helix2_context_t* context, uint64_t block_index);
 static inline void _helix2_shuffle(uint32_t *state, uint8_t a, uint8_t b, uint8_t c, uint8_t d);
 static inline uint32_t _rotl32(uint32_t x, int n);
 static inline uint32_t _pack4(const uint8_t *a);
@@ -65,61 +65,28 @@ HELIX2_API void helix2_initialize_context(helix2_context_t* context, const uint8
     memcpy(context->nonce, nonce, sizeof(context->nonce));      // copy 20 x 8-bit nonce
 
     const uint8_t *magic_constant = (uint8_t*)"so!M4g1c";       // every little code needs some magic
-    context->keystream.state[0] = _pack4(&magic_constant[0]);   // use pack4 to convert 8 bytes to 2 uint32_t
-    context->keystream.state[1] = _pack4(&magic_constant[4]);   
+    context->state[0] = _pack4(&magic_constant[0]);   // use pack4 to convert 8 bytes to 2 uint32_t
+    context->state[1] = _pack4(&magic_constant[4]);   
 
     // Pack key using _pack4 (since key comes as bytes)
-    context->keystream.state[2] = _pack4(&context->key[0]);
-    context->keystream.state[3] = _pack4(&context->key[4]);
-    context->keystream.state[4] = _pack4(&context->key[8]);
-    context->keystream.state[5] = _pack4(&context->key[12]);
-    context->keystream.state[6] = _pack4(&context->key[16]);
-    context->keystream.state[7] = _pack4(&context->key[20]);
-    context->keystream.state[8] = _pack4(&context->key[24]);
-    context->keystream.state[9] = _pack4(&context->key[28]);
+    context->state[2] = _pack4(&context->key[0]);
+    context->state[3] = _pack4(&context->key[4]);
+    context->state[4] = _pack4(&context->key[8]);
+    context->state[5] = _pack4(&context->key[12]);
+    context->state[6] = _pack4(&context->key[16]);
+    context->state[7] = _pack4(&context->key[20]);
+    context->state[8] = _pack4(&context->key[24]);
+    context->state[9] = _pack4(&context->key[28]);
 
-	context->keystream.state[10] = 0;                           // This will hold the block index, assigned later
+	context->state[10] = 0;                           // This will hold the block index, assigned later
     
     // Pack nonce using _pack4 (since nonce comes as bytes)
-	context->keystream.state[11] = _pack4(&context->nonce[0]);  // The high bits of the block index, will be XORed here later
-	context->keystream.state[12] = _pack4(&context->nonce[4]);
-	context->keystream.state[13] = _pack4(&context->nonce[8]);    
-    context->keystream.state[14] = _pack4(&context->nonce[12]);    
-    context->keystream.state[15] = _pack4(&context->nonce[16]);
-  
-    context->keystream.last_block_index = 0;                    // We will start by preparing block 0
-    helix2_buffer_set_next_block(context, 0);
+	context->state[11] = _pack4(&context->nonce[0]);  // The high bits of the block index, will be XORed here later
+	context->state[12] = _pack4(&context->nonce[4]);
+	context->state[13] = _pack4(&context->nonce[8]);    
+    context->state[14] = _pack4(&context->nonce[12]);    
+    context->state[15] = _pack4(&context->nonce[16]);
 }
-
-// Set the keystream block index
-void helix2_buffer_set_next_block(helix2_context_t* context, Helix2_Block_Index block_index) {
-    context->keystream.current_block_index = block_index;
-    _helix2_initialize_keystream(context);       
-}
-
-// Set the keystream to the next sequential block
-void helix2_buffer_next_block(helix2_context_t* context) {
-    helix2_buffer_set_next_block(context, context->keystream.current_block_index + 1);
-}
-
-// Encrypt/Decrypt a single byte at a given offset
-HELIX2_API uint8_t helix2_byte(helix2_context_t* context, uint64_t offset, uint8_t byte) {
-    // Calculate the block index and offset within the block
-    context->keystream.current_block_index  = offset / HELIX2_KEYSTREAM_SIZE;
-    uint8_t block_offset = offset % HELIX2_KEYSTREAM_SIZE;
-
-    // Generate the keystream if needed
-    if (context->keystream.last_block_index != context->keystream.current_block_index) {
-        helix2_buffer_set_next_block(context, context->keystream.current_block_index);
-    }
-
-    // Encrypt/Decrypt the byte using the generated keystream
-    uint8_t *keystream_bytes = (uint8_t *)context->keystream.stream;
-    uint8_t result = byte ^ keystream_bytes[block_offset];
-
-    return result;
-}
-
 
 // Encrypt/Decrypt a buffer starting from a given offset
 //   The buffer offset always starts at offset 0 within the provided buffer.
@@ -129,18 +96,15 @@ HELIX2_API void helix2_buffer(helix2_context_t* context, uint8_t* buffer, size_t
     Helix2_Block_Index current_block = start_offset / HELIX2_KEYSTREAM_SIZE;
     uint8_t block_offset = start_offset % HELIX2_KEYSTREAM_SIZE;
 
-    // Generate the keystream if needed
-    if (context->keystream.last_block_index != current_block) {
-        helix2_buffer_set_next_block(context, current_block);
-    }
+    _helix2_initialize_keystream(context, current_block);
 
-    uint8_t *keystream_bytes = (uint8_t *)context->keystream.stream;
+    uint8_t *keystream_bytes = (uint8_t *)context->stream;
     for (size_t i = 0; i < size; i++) {
         // Do I need to calculate a new keystream block?
         if (block_offset >= HELIX2_KEYSTREAM_SIZE) {
             current_block++;
             block_offset = 0;
-            helix2_buffer_set_next_block(context, current_block);
+            _helix2_initialize_keystream(context, current_block);
         }
         
         // Encrypt/Decrypt the byte
@@ -185,57 +149,54 @@ static inline void _helix2_shuffle(uint32_t *state, uint8_t a, uint8_t b, uint8_
 }
 
 // Build the keystream for the current block index
-void _helix2_initialize_keystream(helix2_context_t* context) {
+void _helix2_initialize_keystream(helix2_context_t* context, uint64_t block_index) {
 
     // Update the block index in the state
-    context->keystream.state[10] = (uint32_t)(context->keystream.current_block_index & 0xFFFFFFFF);
-    context->keystream.state[11] = _pack4(&context->nonce[0]) ^ (uint32_t)((context->keystream.current_block_index >> 32) & 0xFFFFFFFF);
-
+    context->state[10] = (uint32_t)(block_index & 0xFFFFFFFF);
+    context->state[11] = _pack4(&context->nonce[0]) ^ (uint32_t)((block_index >> 32) & 0xFFFFFFFF);
     // Initialize the stream with the current state
-    memcpy(context->keystream.stream, context->keystream.state, HELIX2_KEYSTREAM_SIZE);
+    memcpy(context->stream, context->state, HELIX2_KEYSTREAM_SIZE);
 
 
-    _helix2_shuffle(context->keystream.stream, 0,  1,  2,  3);
-    _helix2_shuffle(context->keystream.stream, 4,  5,  6,  7);
-    _helix2_shuffle(context->keystream.stream, 8,  9,  10, 11);
-    _helix2_shuffle(context->keystream.stream, 12, 13, 14, 15);      
+    _helix2_shuffle(context->stream, 0,  1,  2,  3);
+    _helix2_shuffle(context->stream, 4,  5,  6,  7);
+    _helix2_shuffle(context->stream, 8,  9,  10, 11);
+    _helix2_shuffle(context->stream, 12, 13, 14, 15);      
 
-    _helix2_shuffle(context->keystream.stream, 0, 5, 10, 15);
-    _helix2_shuffle(context->keystream.stream, 1, 6, 11, 12);
-    _helix2_shuffle(context->keystream.stream, 2, 7, 8,  13);
-    _helix2_shuffle(context->keystream.stream, 3, 4, 9,  14);    
+    _helix2_shuffle(context->stream, 0, 5, 10, 15);
+    _helix2_shuffle(context->stream, 1, 6, 11, 12);
+    _helix2_shuffle(context->stream, 2, 7, 8,  13);
+    _helix2_shuffle(context->stream, 3, 4, 9,  14);    
 
     // Add the original state to the stream
-    context->keystream.stream[0]  += context->keystream.state[0];  context->keystream.stream[1]  += context->keystream.state[1];
-    context->keystream.stream[2]  += context->keystream.state[2];  context->keystream.stream[3]  += context->keystream.state[3];
-    context->keystream.stream[4]  += context->keystream.state[4];  context->keystream.stream[5]  += context->keystream.state[5];
-    context->keystream.stream[6]  += context->keystream.state[6];  context->keystream.stream[7]  += context->keystream.state[7];
-    context->keystream.stream[8]  += context->keystream.state[8];  context->keystream.stream[9]  += context->keystream.state[9];
-    context->keystream.stream[10] += context->keystream.state[10]; context->keystream.stream[11] += context->keystream.state[11];
-    context->keystream.stream[12] += context->keystream.state[12]; context->keystream.stream[13] += context->keystream.state[13];
-    context->keystream.stream[14] += context->keystream.state[14]; context->keystream.stream[15] += context->keystream.state[15];
+    context->stream[0]  += context->state[0];  context->stream[1]  += context->state[1];
+    context->stream[2]  += context->state[2];  context->stream[3]  += context->state[3];
+    context->stream[4]  += context->state[4];  context->stream[5]  += context->state[5];
+    context->stream[6]  += context->state[6];  context->stream[7]  += context->state[7];
+    context->stream[8]  += context->state[8];  context->stream[9]  += context->state[9];
+    context->stream[10] += context->state[10]; context->stream[11] += context->state[11];
+    context->stream[12] += context->state[12]; context->stream[13] += context->state[13];
+    context->stream[14] += context->state[14]; context->stream[15] += context->state[15];
 
     // Round 2 (Shuffle columns and mirrored diagonal)
-    _helix2_shuffle(context->keystream.stream, 0, 4, 8,  12);
-    _helix2_shuffle(context->keystream.stream, 1, 5, 9,  13);
-    _helix2_shuffle(context->keystream.stream, 2, 6, 10, 14);
-    _helix2_shuffle(context->keystream.stream, 3, 7, 11, 15);        
+    _helix2_shuffle(context->stream, 0, 4, 8,  12);
+    _helix2_shuffle(context->stream, 1, 5, 9,  13);
+    _helix2_shuffle(context->stream, 2, 6, 10, 14);
+    _helix2_shuffle(context->stream, 3, 7, 11, 15);        
 
-    _helix2_shuffle(context->keystream.stream, 3, 6, 9,  12);
-    _helix2_shuffle(context->keystream.stream, 2, 5, 8,  15);
-    _helix2_shuffle(context->keystream.stream, 1, 4, 11, 14);
-    _helix2_shuffle(context->keystream.stream, 0, 7, 10, 13);
+    _helix2_shuffle(context->stream, 3, 6, 9,  12);
+    _helix2_shuffle(context->stream, 2, 5, 8,  15);
+    _helix2_shuffle(context->stream, 1, 4, 11, 14);
+    _helix2_shuffle(context->stream, 0, 7, 10, 13);
 
     // Add the original state to the stream, round 2
-    context->keystream.stream[0]  += context->keystream.state[0];  context->keystream.stream[1]  += context->keystream.state[1];
-    context->keystream.stream[2]  += context->keystream.state[2];  context->keystream.stream[3]  += context->keystream.state[3];
-    context->keystream.stream[4]  += context->keystream.state[4];  context->keystream.stream[5]  += context->keystream.state[5];
-    context->keystream.stream[6]  += context->keystream.state[6];  context->keystream.stream[7]  += context->keystream.state[7];
-    context->keystream.stream[8]  += context->keystream.state[8];  context->keystream.stream[9]  += context->keystream.state[9];
-    context->keystream.stream[10] += context->keystream.state[10]; context->keystream.stream[11] += context->keystream.state[11];
-    context->keystream.stream[12] += context->keystream.state[12]; context->keystream.stream[13] += context->keystream.state[13];
-    context->keystream.stream[14] += context->keystream.state[14]; context->keystream.stream[15] += context->keystream.state[15];
+    context->stream[0]  += context->state[0];  context->stream[1]  += context->state[1];
+    context->stream[2]  += context->state[2];  context->stream[3]  += context->state[3];
+    context->stream[4]  += context->state[4];  context->stream[5]  += context->state[5];
+    context->stream[6]  += context->state[6];  context->stream[7]  += context->state[7];
+    context->stream[8]  += context->state[8];  context->stream[9]  += context->state[9];
+    context->stream[10] += context->state[10]; context->stream[11] += context->state[11];
+    context->stream[12] += context->state[12]; context->stream[13] += context->state[13];
+    context->stream[14] += context->state[14]; context->stream[15] += context->state[15];
 
-    // Set last block index
-    context->keystream.last_block_index = context->keystream.current_block_index;    
 }

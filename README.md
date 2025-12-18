@@ -113,15 +113,13 @@ uint8_t key[32] = { /* your key */ };
 uint8_t nonce[20] = { /* your nonce */ };
 helix2_initialize_context(&ctx, key, nonce);
 
-// Encrypt/decrypt a single byte
-uint8_t encrypted = helix2_byte(&ctx, offset, plaintext_byte);
-
-// Encrypt/decrypt a buffer
+// Encrypt/decrypt a buffer at any offset
 uint8_t buffer[1024] = { /* your data */ };
 helix2_buffer(&ctx, buffer, sizeof(buffer), start_offset);
 
-// Seek to a specific block
-helix2_buffer_set_next_block(&ctx, block_index);
+// Single byte example - just use a 1-byte buffer
+uint8_t byte = plaintext_byte;
+helix2_buffer(&ctx, &byte, 1, offset);
 ```
 
 ## Testing
