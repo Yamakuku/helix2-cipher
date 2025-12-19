@@ -118,8 +118,7 @@ HELIX2_API void helix2_buffer(helix2_context_t* context, uint8_t* buffer, size_t
 
 // Internal helper functions
 // Standard rotate left for 32-bit integers
-static inline uint32_t _rotl32(uint32_t x, int n) 
-{
+static inline uint32_t _rotl32(uint32_t x, int n) {
 	return (x << n) | (x >> (32 - n));
 }
 
@@ -157,7 +156,7 @@ void _helix2_initialize_keystream(helix2_context_t* context, uint64_t block_inde
     // Initialize the stream with the current state
     memcpy(context->stream, context->state, HELIX2_KEYSTREAM_SIZE);
 
-
+    // Round 1 (Shuffle rows and diagonals)
     _helix2_shuffle(context->stream, 0,  1,  2,  3);
     _helix2_shuffle(context->stream, 4,  5,  6,  7);
     _helix2_shuffle(context->stream, 8,  9,  10, 11);
@@ -168,7 +167,7 @@ void _helix2_initialize_keystream(helix2_context_t* context, uint64_t block_inde
     _helix2_shuffle(context->stream, 2, 7, 8,  13);
     _helix2_shuffle(context->stream, 3, 4, 9,  14);    
 
-    // Add the original state to the stream
+    // Add the original state to the stream, round 1
     context->stream[0]  += context->state[0];  context->stream[1]  += context->state[1];
     context->stream[2]  += context->state[2];  context->stream[3]  += context->state[3];
     context->stream[4]  += context->state[4];  context->stream[5]  += context->state[5];
@@ -178,7 +177,7 @@ void _helix2_initialize_keystream(helix2_context_t* context, uint64_t block_inde
     context->stream[12] += context->state[12]; context->stream[13] += context->state[13];
     context->stream[14] += context->state[14]; context->stream[15] += context->state[15];
 
-    // Round 2 (Shuffle columns and mirrored diagonal)
+    // Round 2 (Shuffle columns and mirrored diagonals)
     _helix2_shuffle(context->stream, 0, 4, 8,  12);
     _helix2_shuffle(context->stream, 1, 5, 9,  13);
     _helix2_shuffle(context->stream, 2, 6, 10, 14);
