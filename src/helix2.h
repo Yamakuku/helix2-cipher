@@ -29,6 +29,6 @@ typedef struct
 } helix2_context_t;
 
 // Exported functions
-HELIX2_API void helix2_initialize_context(helix2_context_t* context, const uint8_t* key, uint8_t* nonce);
+HELIX2_API void helix2_initialize_context(helix2_context_t* context, const uint8_t* key, const uint8_t* nonce);
 HELIX2_API void helix2_buffer(helix2_context_t* context, uint8_t* buffer, size_t size, uint64_t start_offset);
 #endif

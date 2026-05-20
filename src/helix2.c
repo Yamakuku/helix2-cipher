@@ -58,14 +58,14 @@ static inline uint32_t _pack4(const uint8_t *a);
 
 // Exposed functions
 // Initialize the Helix2 context with key and nonce
-HELIX2_API void helix2_initialize_context(helix2_context_t* context, const uint8_t* key, uint8_t* nonce) {
+HELIX2_API void helix2_initialize_context(helix2_context_t* context, const uint8_t* key, const uint8_t* nonce) {
     // Prepare the context
     memset(context, 0, sizeof(helix2_context_t));
     memcpy(context->key, key, sizeof(context->key));            // copy 32 x 8-bit key
     memcpy(context->nonce, nonce, sizeof(context->nonce));      // copy 20 x 8-bit nonce
 
-    const uint8_t *magic_constant = (uint8_t*)"so!M4g1c";       // every little code needs some magic
-    context->state[0] = _pack4(&magic_constant[0]);   // use pack4 to convert 8 bytes to 2 uint32_t
+    const uint8_t *magic_constant = (const uint8_t*)"so!M4g1c";       // every little code needs some magic
+    context->state[0] = _pack4(&magic_constant[0]);   // use pack4 to convert 4 bytes to 2 uint32_t
     context->state[1] = _pack4(&magic_constant[4]);   
 
     // Pack key using _pack4 (since key comes as bytes)
@@ -78,19 +78,19 @@ HELIX2_API void helix2_initialize_context(helix2_context_t* context, const uint8
     context->state[8] = _pack4(&context->key[24]);
     context->state[9] = _pack4(&context->key[28]);
 
-	context->state[10] = 0;                           // This will hold the block index, assigned later
+    context->state[10] = 0;                           // This will hold the block index, assigned later
     
     // Pack nonce using _pack4 (since nonce comes as bytes)
-	context->state[11] = _pack4(&context->nonce[0]);  // The high bits of the block index, will be XORed here later
-	context->state[12] = _pack4(&context->nonce[4]);
-	context->state[13] = _pack4(&context->nonce[8]);    
+    context->state[11] = _pack4(&context->nonce[0]);  // The high bits of the block index, will be XORed here later
+    context->state[12] = _pack4(&context->nonce[4]);
+    context->state[13] = _pack4(&context->nonce[8]);    
     context->state[14] = _pack4(&context->nonce[12]);    
     context->state[15] = _pack4(&context->nonce[16]);
 }
 
 // Encrypt/Decrypt a buffer starting from a given offset
 //   The buffer offset always starts at offset 0 within the provided buffer.
-//   The start_offset is the offset in the keystream where the buffer processing should begins.
+//   The start_offset is the offset in the keystream where the buffer processing should begin.
 HELIX2_API void helix2_buffer(helix2_context_t* context, uint8_t* buffer, size_t size, uint64_t start_offset) {
     // Calculate starting block and offset within that block
     uint64_t current_block = start_offset / HELIX2_KEYSTREAM_SIZE;
@@ -155,7 +155,7 @@ void _helix2_initialize_keystream(helix2_context_t* context, uint64_t block_inde
     context->state[10] = (uint32_t)(block_index & 0xFFFFFFFF);
     context->state[11] = _pack4(&context->nonce[0]) ^ (uint32_t)((block_index >> 32) & 0xFFFFFFFF);
     // Initialize the stream with the current state
-    memcpy(context->stream, context->state, HELIX2_KEYSTREAM_SIZE);
+    memcpy(context->stream, context->state, sizeof(context->stream));
 
 
     _helix2_shuffle(context->stream, 0,  1,  2,  3);
